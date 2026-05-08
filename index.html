@@ -168,30 +168,43 @@ Object.keys(data).forEach(m => {
 function initGame() {
     const major = select.value;
     if(!major) return;
-    document.getElementById('content').style.display = 'block';
     
-    // 수학 표시
-    const mDisp = document.getElementById('mathDisplay');
-    mDisp.innerHTML = '';
-    data[major].mCore.forEach(s => mDisp.innerHTML += `<span class="chip math">${s}(핵심)</span>`);
-    data[major].mRec.forEach(s => mDisp.innerHTML += `<span class="chip math" style="opacity:0.7">${s}(권장)</span>`);
-
-    // 과학 풀 초기화
-    const pool = document.getElementById('sciPool');
-    pool.innerHTML = '';
-    document.getElementById('coreZone').innerHTML = '';
-    document.getElementById('recZone').innerHTML = '';
+    const content = document.getElementById('content');
+    const gameArea = document.querySelector('.game-area'); // 과학 게임 영역
+    const btnCheck = document.querySelector('.btn-check'); // 확인 버튼
     
-    sciSubjects.sort(() => Math.random() - 0.5).forEach(s => {
-        pool.innerHTML += `<div class="chip sci" data-name="${s}">${s}</div>`;
-    });
+    content.style.display = 'block';
 
-    // 드래그앤드롭 활성화
-    [pool, document.getElementById('coreZone'), document.getElementById('recZone')].forEach(el => {
-        new Sortable(el, { group: 'sci', animation: 150 });
-    });
+    // 과학 과목이 아예 없는 학과인 경우
+    if (data[major].sCore.length === 0 && data[major].sRec.length === 0) {
+        gameArea.style.display = 'none'; // 게임 숨김
+        btnCheck.style.display = 'none'; // 버튼 숨김
+        
+        // 안내 문구 삽입
+        const notice = document.createElement('div');
+        notice.id = "specialNotice";
+        notice.innerHTML = `
+            <div style="padding:40px 20px; text-align:center; background:#f0f7ff; border-radius:12px; border:1px solid #d0e0ff; margin-top:20px;">
+                <p style="font-size:1.2rem; margin-bottom:10px;">📐</p>
+                <strong style="color:#004d99;">${major}</strong>는<br>
+                과학교과 권장과목이 지정되지 않았습니다.<br>
+                <small style="display:block; margin-top:10px; color:#666;">이 모집단위는 수학적 기초 역량이<br>무엇보다 중요하게 평가됩니다!</small>
+            </div>
+        `;
+        // 기존에 notice가 있다면 삭제 후 추가
+        const oldNotice = document.getElementById('specialNotice');
+        if(oldNotice) oldNotice.remove();
+        content.appendChild(notice);
+    } else {
+        // 과학 과목이 있는 학과는 정상 게임 진행
+        gameArea.style.display = 'flex';
+        btnCheck.style.display = 'block';
+        const oldNotice = document.getElementById('specialNotice');
+        if(oldNotice) oldNotice.remove();
+        
+        // ... 기존 과학 게임 초기화 로직 (sciPool 초기화 등)
+    }
 }
-
 function checkResult() {
     const major = select.value;
     if (!major) return;

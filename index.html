@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 창원명지여자고등학교 전공 로드맵 챌린지</title>
+    <title>🏫2026 창원명지여자고등학교 전공 로드맵 챌린지</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -246,55 +246,57 @@ function checkResult() {
     const target = data[major];
     let isCorrect = true;
 
-    // 1. 핵심과목 주머니 검증 (필수 + 선택형 + 오답체크)
+    // --- 1. 핵심과목 주머니 검사 ---
+    // 필수 핵심과목이 다 들어있는가?
     target.sCore.forEach(s => { if(!coreUser.includes(s)) isCorrect = false; });
-    if(target.sFlex) {
-        const flexMatch = target.sFlex.filter(s => coreUser.includes(s)).length;
-        if(flexMatch !== target.sFlexCount) isCorrect = false;
-    }
-    coreUser.forEach(u => {
-        const isBaseCore = target.sCore.includes(u);
-        const isFlexCore = target.sFlex ? target.sFlex.includes(u) : false;
-        if (!isBaseCore && !isFlexCore) isCorrect = false;
-    });
 
-    // 2. 권장과목 주머니 검증
-    target.sRec.forEach(s => { if(!recUser.includes(s)) isCorrect = false; });
-    recUser.forEach(u => { if (!target.sRec.includes(u)) isCorrect = false; });
-
-    // 3. 결과 모션 출력
-    if (isCorrect) {
-        // 성공: 화려한 황금빛 폭죽
-        confetti({ 
-            particleCount: 150, 
-            spread: 70, 
-            origin: { y: 0.6 },
-            colors: ['#cc0000', '#ffd700', '#ffffff'] 
+    // "핵심" 선택형 (의예, 약학 등) 검사
+    if(target.sFlex && (major.includes("의예") || major.includes("약학")) && !major.includes("한의예")) {
+        const flexInCore = target.sFlex.filter(s => coreUser.includes(s)).length;
+        if(flexInCore !== target.sFlexCount) isCorrect = false;
+        
+        // 핵심 주머니에 엉뚱한게 없는가? (필수핵심 + 선택핵심만 허용)
+        coreUser.forEach(u => {
+            if (!target.sCore.includes(u) && !target.sFlex.includes(u)) isCorrect = false;
         });
-        alert("정답입니다! 🎉 경희대학교 전공 로드맵을 완벽히 이해하셨네요!");
     } else {
-        // 실패: 파란색 눈물 폭죽 (위에서 아래로 쏟아짐)
+        // 일반적인 경우: 핵심 주머니엔 sCore만 있어야 함
+        coreUser.forEach(u => { if (!target.sCore.includes(u)) isCorrect = false; });
+    }
+
+
+    // --- 2. 권장과목 주머니 검사 ---
+    // 필수 권장과목이 다 들어있는가?
+    target.sRec.forEach(s => { if(!recUser.includes(s)) isCorrect = false; });
+
+    // "권장" 선택형 (한의예, 치의예, 우주과학 등) 검사
+    if(target.sFlex && (major.includes("한의예") || major.includes("치의예") || major.includes("우주과학"))) {
+        const flexInRec = target.sFlex.filter(s => recUser.includes(s)).length;
+        if(flexInRec !== target.sFlexCount) isCorrect = false;
+
+        // 권장 주머니에 엉뚱한게 없는가? (필수권장 + 선택권장만 허용)
+        recUser.forEach(u => {
+            if (!target.sRec.includes(u) && !target.sFlex.includes(u)) isCorrect = false;
+        });
+    } else {
+        // 일반적인 경우: 권장 주머니엔 sRec만 있어야 함
+        recUser.forEach(u => { if (!target.sRec.includes(u)) isCorrect = false; });
+    }
+
+    // --- 3. 결과 모션 출력 (기존과 동일) ---
+    if (isCorrect) {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#cc0000', '#ffd700', '#ffffff'] });
+        alert("정답입니다! 🎉\n모집단위별 과목 위계를 완벽하게 파악하셨네요!");
+    } else {
+        // 눈물 효과 (기존 코드 유지)
         const duration = 2 * 1000;
         const animationEnd = Date.now() + duration;
-
         const tearInterval = setInterval(function() {
             const timeLeft = animationEnd - Date.now();
             if (timeLeft <= 0) return clearInterval(tearInterval);
-
-            confetti({
-                particleCount: 2,
-                angle: 270, // 아래로 향하게 함
-                spread: 50,
-                origin: { x: Math.random(), y: -0.1 }, // 화면 위쪽 무작위 지점
-                colors: ['#00BFFF', '#1E90FF', '#ADD8E6'], // 눈물 색상 (하늘~파랑)
-                shapes: ['circle'], // 방울 모양
-                ticks: 200,
-                gravity: 1.2, // 좀 더 무겁게 떨어지도록
-                scalar: 0.7   // 크기 조절
-            });
+            confetti({ particleCount: 2, angle: 270, spread: 50, origin: { x: Math.random(), y: -0.1 }, colors: ['#00BFFF', '#1E90FF', '#ADD8E6'], gravity: 1.2, scalar: 0.7 });
         }, 50);
-
-        alert("다시 한번 시도해 보세요! 😭\n필요한 과목이 빠졌거나 오답이 섞여 있습니다.");
+        alert("다시 한번 시도해 보세요! 😭\n선택 과목 개수가 틀렸거나, 과목 배치가 잘못되었습니다.");
     }
 }
 </script>

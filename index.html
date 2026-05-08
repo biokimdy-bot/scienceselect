@@ -251,7 +251,7 @@ function checkResult() {
     target.sCore.forEach(s => { if(!coreUser.includes(s)) isCorrect = false; });
 
     // "핵심" 내 선택형 로직 (의예, 약학, 화학과 등)
-    if(target.sFlex && (major.includes("의예") || major.includes("약학") || major.includes("화학과"))) {
+    if(target.sFlex && (major.includes("의예") || major.includes("약학") || major.includes("약학"))) {
         const flexInCore = target.sFlex.filter(s => coreUser.includes(s)).length;
         // 화학과는 2개 중 1개, 의예/약학은 4개 중 3개인지 체크
         if(flexInCore !== target.sFlexCount) isCorrect = false;
@@ -270,7 +270,7 @@ function checkResult() {
     target.sRec.forEach(s => { if(!recUser.includes(s)) isCorrect = false; });
 
     // "권장" 내 선택형 로직 (한의예, 치의예, 우주과학 등)
-    if(target.sFlex && (major.includes("한의예") || major.includes("치의예") || major.includes("우주과학"))) {
+    if(target.sFlex && (major.includes("한의예") || major.includes("치의예") || major.includes("화학과")  || major.includes("우주과학"))) {
         const flexInRec = target.sFlex.filter(s => recUser.includes(s)).length;
         if(flexInRec !== target.sFlexCount) isCorrect = false;
 
@@ -289,16 +289,27 @@ function checkResult() {
         alert("정답입니다! 🎉\n복잡한 선택 과목 조건까지 완벽하게 맞히셨습니다!");
     } else {
         // 눈물 효과
-        const duration = 2 * 1000;
-        const animationEnd = Date.now() + duration;
-        const tearInterval = setInterval(function() {
-            const timeLeft = animationEnd - Date.now();
-            if (timeLeft <= 0) return clearInterval(tearInterval);
-            confetti({ particleCount: 2, angle: 270, spread: 50, origin: { x: Math.random(), y: -0.1 }, colors: ['#00BFFF', '#1E90FF', '#ADD8E6'], gravity: 1.2, scalar: 0.7 });
-        }, 50);
-        alert("다시 한번 시도해 보세요! 😭\n학과별 핵심/권장 과목의 위계나 선택 과목 개수를 확인해 보세요.");
+        const duration = 2000; // 2초간 흐름
+        const end = Date.now() + duration;
+
+        (function frame() {
+            // 왼쪽에서 빗방울
+            confetti({
+                particleCount: 3,
+                angle: 270,        // 아래 방향으로 발사
+                spread: 15,        // 퍼지지 않고 일자로 떨어지게 함
+                origin: { x: Math.random(), y: -0.2 }, // 화면 위쪽 랜덤 위치
+                colors: ['#22A6B3', '#3867D6', '#4B7BEC'], // 빗방울 파란색 계열
+                gravity: 1.5,      // 중력을 강하게 해서 빨리 떨어지게
+                scalar: 0.8,       // 빗방울 크기
+                ticks: 300         // 화면 아래까지 사라지지 않고 유지되는 시간
+            });
+
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        }());
+
+        setTimeout(() => alert("다시 한번 시도해 보세요! 😭\n과목 배치가 틀렸거나 개수가 맞지 않습니다."), 500);
     }
 }
-</script>
-</body>
-</html>

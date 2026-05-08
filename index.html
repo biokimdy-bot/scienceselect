@@ -170,17 +170,30 @@ function initGame() {
     if(!major) return;
     
     const content = document.getElementById('content');
-    const gameArea = document.querySelector('.game-area'); // 과학 게임 영역
-    const btnCheck = document.querySelector('.btn-check'); // 확인 버튼
+    const gameArea = document.querySelector('.game-area'); 
+    const btnCheck = document.querySelector('.btn-check'); 
     
     content.style.display = 'block';
 
-    // 과학 과목이 아예 없는 학과인 경우
-    if (data[major].sCore.length === 0 && data[major].sRec.length === 0) {
-        gameArea.style.display = 'none'; // 게임 숨김
-        btnCheck.style.display = 'none'; // 버튼 숨김
+    // 1. 수학 과목 표시 로직 추가
+    const mDisp = document.getElementById('mathDisplay');
+    mDisp.innerHTML = '';
+    data[major].mCore.forEach(s => {
+        mDisp.innerHTML += `<span class="chip math">${s}(핵심)</span>`;
+    });
+    data[major].mRec.forEach(s => {
+        mDisp.innerHTML += `<span class="chip math" style="opacity:0.7; background:#f0f0f0; color:#666; border-color:#ccc;">${s}(권장)</span>`;
+    });
+
+    // 기존 안내 문구(specialNotice)가 있다면 먼저 제거
+    const oldNotice = document.getElementById('specialNotice');
+    if(oldNotice) oldNotice.remove();
+
+    // 2. 과학 과목이 아예 없는 학과인 경우
+    if (data[major].sCore.length === 0 && (data[major].sRec ? data[major].sRec.length === 0 : true)) {
+        gameArea.style.display = 'none'; 
+        btnCheck.style.display = 'none'; 
         
-        // 안내 문구 삽입
         const notice = document.createElement('div');
         notice.id = "specialNotice";
         notice.innerHTML = `
@@ -191,18 +204,37 @@ function initGame() {
                 <small style="display:block; margin-top:10px; color:#666;">이 모집단위는 수학적 기초 역량이<br>무엇보다 중요하게 평가됩니다!</small>
             </div>
         `;
-        // 기존에 notice가 있다면 삭제 후 추가
-        const oldNotice = document.getElementById('specialNotice');
-        if(oldNotice) oldNotice.remove();
         content.appendChild(notice);
     } else {
-        // 과학 과목이 있는 학과는 정상 게임 진행
+        // 3. 과학 과목이 있는 학과는 정상 게임 진행
         gameArea.style.display = 'flex';
         btnCheck.style.display = 'block';
-        const oldNotice = document.getElementById('specialNotice');
-        if(oldNotice) oldNotice.remove();
         
-        // ... 기존 과학 게임 초기화 로직 (sciPool 초기화 등)
+        // 과학 주머니들 초기화
+        const pool = document.getElementById('sciPool');
+        const coreZone = document.getElementById('coreZone');
+        const recZone = document.getElementById('recZone');
+        
+        pool.innerHTML = '';
+        coreZone.innerHTML = '';
+        recZone.innerHTML = '';
+        
+        // 과학 과목 칩 생성 (랜덤 섞기)
+        const shuffledSci = [...sciSubjects].sort(() => Math.random() - 0.5);
+        shuffledSci.forEach(s => {
+            pool.innerHTML += `<div class="chip sci" data-name="${s}">${s}</div>`;
+        });
+
+        // 드래그앤드롭 다시 활성화 (SortableJS)
+        [pool, coreZone, recZone].forEach(el => {
+            // 기존 인스턴스가 있다면 파괴하고 새로 생성 (중복 방지)
+            if (Sortable.get(el)) Sortable.get(el).destroy();
+            new Sortable(el, { 
+                group: 'sci', 
+                animation: 150,
+                ghostClass: 'blue-background-class' 
+            });
+        });
     }
 }
 function checkResult() {

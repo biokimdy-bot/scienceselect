@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🏫2026 창원명지여자고등학교 전공 로드맵 챌린지</title>
+    <title>🏫2026 창원명지여자고등학교 전공 로드맵 챌린지1</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -288,21 +288,22 @@ function checkResult() {
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#cc0000', '#ffd700', '#ffffff'] });
         alert("정답입니다! 🎉\n복잡한 선택 과목 조건까지 완벽하게 맞히셨습니다!");
     } else {
-        // 눈물 효과
-        const duration = 2000; // 2초간 흐름
+        // [실패] 네모난 종이가 아닌 '동근 빗방울' 모션
+        const duration = 2000; 
         const end = Date.now() + duration;
 
         (function frame() {
-            // 왼쪽에서 빗방울
             confetti({
-                particleCount: 3,
-                angle: 270,        // 아래 방향으로 발사
-                spread: 15,        // 퍼지지 않고 일자로 떨어지게 함
-                origin: { x: Math.random(), y: -0.2 }, // 화면 위쪽 랜덤 위치
-                colors: ['#22A6B3', '#3867D6', '#4B7BEC'], // 빗방울 파란색 계열
-                gravity: 1.5,      // 중력을 강하게 해서 빨리 떨어지게
-                scalar: 0.8,       // 빗방울 크기
-                ticks: 300         // 화면 아래까지 사라지지 않고 유지되는 시간
+                particleCount: 2,      // 한 번에 나오는 양을 적게 해서 줄기처럼 보이게
+                angle: 270,            // 정확히 아래로
+                spread: 40,            // 약간의 퍼짐
+                origin: { x: Math.random(), y: -0.2 }, 
+                colors: ['#22A6B3', '#3867D6', '#74b9ff'], 
+                shapes: ['circle'],    // ★핵심: 사각형 빼고 원형만 사용
+                gravity: 1.8,          // 더 빠르게 떨어지도록
+                scalar: 0.5,           // ★핵심: 입자 크기를 작게 해서 물방울 느낌
+                ticks: 200,            // 화면 끝까지 유지
+                drift: 0               // 옆으로 흐르지 않게
             });
 
             if (Date.now() < end) {
@@ -310,6 +311,6 @@ function checkResult() {
             }
         }());
 
+        // 알림창이 효과를 가리지 않도록 약간 늦게 띄웁니다.
         setTimeout(() => alert("다시 한번 시도해 보세요! 😭\n과목 배치가 틀렸거나 개수가 맞지 않습니다."), 500);
     }
-}

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2028 경희대 전공 로드맵 챌린지</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --khu-red: #cc0000; --khu-blue: #004d99; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; margin: 0; padding: 15px; background: #f4f4f9; color: #333; line-height: 1.4; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { font-size: 1.2rem; color: var(--khu-red); margin: 5px 0; }
+        
+        select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 1rem; margin-bottom: 15px; background: white; }
+        
+        .info-box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .info-title { font-weight: bold; font-size: 0.9rem; color: #666; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .math-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+        .chip { padding: 6px 12px; border-radius: 15px; font-size: 0.85rem; font-weight: 500; }
+        .chip.math { background: #eef4ff; color: var(--khu-blue); border: 1px solid #d0e0ff; }
+        .chip.sci { background: white; border: 1px solid #ddd; cursor: grab; touch-action: none; }
+
+        .game-area { display: flex; flex-direction: column; gap: 15px; }
+        .drop-zone-container { background: #fff; padding: 12px; border-radius: 12px; border: 2px solid #eee; }
+        .drop-zone-container.target-core { border-color: #ffd700; background: #fffdf0; }
+        .drop-zone-container.target-rec { border-color: #90ee90; background: #f0fff0; }
+        
+        .zone-label { font-weight: bold; font-size: 0.85rem; margin-bottom: 8px; display: block; }
+        .drop-zone { min-height: 60px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
+
+        .btn-check { width: 100%; padding: 15px; background: var(--khu-red); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; margin-top: 20px; }
+        .footer-note { font-size: 0.75rem; color: #888; text-align: center; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🦁 경희대 전공 로드맵 챌린지</h1>
+    <p style="font-size:0.8rem;">2028학년도 대비 교과이수 권장과목 수정안 반영</p>
+</div>
+
+<select id="majorSelect" onchange="initGame()">
+    <option value="">지원하고자 하는 모집단위를 선택하세요</option>
+    </select>
+
+<div id="content" style="display:none;">
+    <div class="info-box">
+        <div class="info-title">수학 교과 핵심/권장 과목 (자동 안내)</div>
+        <div id="mathDisplay" class="math-chips"></div>
+    </div>
+
+    <div class="game-area">
+        <div class="drop-zone-container">
+            <span class="zone-label">🧪 과학교과 주머니 (드래그하세요)</span>
+            <div id="sciPool" class="drop-zone"></div>
+        </div>
+
+        <div class="drop-zone-container target-core">
+            <span class="zone-label">⭐ 핵심과목 (필수적 이수 권장)</span>
+            <div id="coreZone" class="drop-zone"></div>
+        </div>
+
+        <div class="drop-zone-container target-rec">
+            <span class="zone-label">✅ 권장과목 (가급적 이수 권장)</span>
+            <div id="recZone" class="drop-zone"></div>
+        </div>
+    </div>
+
+    <button class="btn-check" onclick="checkResult()">결과 확인하기</button>
+    <p class="footer-note">※ 이수 과목 수에 따른 정량적 가·감점은 없으며 정성평가에 반영됩니다.</p>
+</div>
+
+<script>
+// 경희대 데이터 추출본 반영 
+const data = {
+    "의예과": { 
+        mCore: ["대수", "미적분Ⅰ", "확률과 통계", "미적분Ⅱ"], mRec: [], 
+        sCore: ["화학", "생명과학"], sFlex: ["물질과 에너지", "화학 반응의 세계", "세포와 물질대사", "생물의 유전"], sFlexCount: 3, sRec: ["물리학"] 
+    },
+    "기계공학부": { 
+        mCore: ["대수", "미적분Ⅰ", "확률과 통계", "미적분Ⅱ", "기하"], mRec: [], 
+        sCore: ["물리학", "화학", "역학과 에너지", "전자기와 양자"], sRec: [] 
+    },
+    "화학과": { 
+        mCore: ["대수", "미적분Ⅰ", "확률과 통계", "미적분Ⅱ"], mRec: ["기하"], 
+        sCore: ["화학", "물질과 에너지", "화학 반응의 세계"], sRec: ["물리학"] 
+    },
+    "간호학과": { 
+        mCore: ["대수", "미적분Ⅰ", "확률과 통계"], mRec: ["미적분Ⅱ"], 
+        sCore: ["생명과학", "세포와 물질대사", "생물의 유전"], sRec: ["화학", "물질과 에너지", "화학 반응의 세계"] 
+    }
+    // 필요한 학과 데이터를 동일 형식으로 추가하세요.
+};
+
+const sciSubjects = ["물리학", "역학과 에너지", "전자기와 양자", "화학", "물질과 에너지", "화학 반응의 세계", "생명과학", "세포와 물질대사", "생물의 유전", "지구과학", "지구시스템과학", "행성우주과학"];
+
+// 초기화: 드롭다운 생성
+const select = document.getElementById('majorSelect');
+Object.keys(data).forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m; opt.innerText = m; select.appendChild(opt);
+});
+
+function initGame() {
+    const major = select.value;
+    if(!major) return;
+    document.getElementById('content').style.display = 'block';
+    
+    // 수학 표시
+    const mDisp = document.getElementById('mathDisplay');
+    mDisp.innerHTML = '';
+    data[major].mCore.forEach(s => mDisp.innerHTML += `<span class="chip math">${s}(핵심)</span>`);
+    data[major].mRec.forEach(s => mDisp.innerHTML += `<span class="chip math" style="opacity:0.7">${s}(권장)</span>`);
+
+    // 과학 풀 초기화
+    const pool = document.getElementById('sciPool');
+    pool.innerHTML = '';
+    document.getElementById('coreZone').innerHTML = '';
+    document.getElementById('recZone').innerHTML = '';
+    
+    sciSubjects.sort(() => Math.random() - 0.5).forEach(s => {
+        pool.innerHTML += `<div class="chip sci" data-name="${s}">${s}</div>`;
+    });
+
+    // 드래그앤드롭 활성화
+    [pool, document.getElementById('coreZone'), document.getElementById('recZone')].forEach(el => {
+        new Sortable(el, { group: 'sci', animation: 150 });
+    });
+}
+
+function checkResult() {
+    const major = select.value;
+    const coreUser = Array.from(document.getElementById('coreZone').children).map(c => c.dataset.name);
+    const recUser = Array.from(document.getElementById('recZone').children).map(c => c.dataset.name);
+    
+    const target = data[major];
+    let isCorrect = true;
+
+    // 핵심과목 검증
+    target.sCore.forEach(s => { if(!coreUser.includes(s)) isCorrect = false; });
+    
+    // 선택형(의예 등) 검증
+    if(target.sFlex) {
+        const flexMatch = target.sFlex.filter(s => coreUser.includes(s)).length;
+        if(flexMatch < target.sFlexCount) isCorrect = false;
+    }
+
+    if(isCorrect) {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        alert("정답입니다! 🎉\n경희대학교 전공 이수 로드맵을 완벽히 이해하셨네요!");
+    } else {
+        alert("다시 한번 시도해 보세요! 😭\n모집단위별 핵심/권장과목 안내를 다시 확인해볼까요?");
+    }
+}
+</script>
+</body>
+</html>

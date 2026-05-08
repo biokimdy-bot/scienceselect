@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🏫2026 창원명지여자고등학교 전공 로드맵 챌린지1</title>
+    <title>🏫2026 창1원명지여자고등학교 전공 로드맵 챌린지</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -247,39 +247,39 @@ function checkResult() {
     let isCorrect = true;
 
     // --- 1. 핵심과목 주머니 검사 ---
-    // 필수 핵심과목 포함 여부
+    // 필수 핵심과목이 모두 포함되었는가?
     target.sCore.forEach(s => { if(!coreUser.includes(s)) isCorrect = false; });
 
-    // "핵심" 내 선택형 로직 (의예, 약학, 화학과 등)
-    if(target.sFlex && (major.includes("의예") || major.includes("약학") || major.includes("약학"))) {
+    // sFlex가 '핵심'으로 가야 하는 학과 (의예, 약학 계열)
+    if(target.sFlex && (major.includes("의예") || (major.includes("약학") && !major.includes("한약")))) {
         const flexInCore = target.sFlex.filter(s => coreUser.includes(s)).length;
-        // 화학과는 2개 중 1개, 의예/약학은 4개 중 3개인지 체크
         if(flexInCore !== target.sFlexCount) isCorrect = false;
         
-        // 핵심 주머니 오답 체크
         coreUser.forEach(u => {
             if (!target.sCore.includes(u) && !target.sFlex.includes(u)) isCorrect = false;
         });
     } else {
+        // 그 외 모든 학과(화학, 우주 등): 핵심 주머니엔 sCore만 있어야 함
+        if (coreUser.length !== target.sCore.length) isCorrect = false;
         coreUser.forEach(u => { if (!target.sCore.includes(u)) isCorrect = false; });
     }
 
-
     // --- 2. 권장과목 주머니 검사 ---
-    // 필수 권장과목 포함 여부
+    // 필수 권장과목이 모두 포함되었는가?
     target.sRec.forEach(s => { if(!recUser.includes(s)) isCorrect = false; });
 
-    // "권장" 내 선택형 로직 (한의예, 치의예, 우주과학 등)
-    if(target.sFlex && (major.includes("한의예") || major.includes("치의예") || major.includes("화학과")  || major.includes("우주과학"))) {
+    // sFlex가 '권장'으로 가야 하는 학과 (화학, 우주, 한의예, 치의예 등)
+    if(target.sFlex && (major.includes("화학과") || major.includes("우주과학") || major.includes("한의예") || major.includes("치의예"))) {
         const flexInRec = target.sFlex.filter(s => recUser.includes(s)).length;
         if(flexInRec !== target.sFlexCount) isCorrect = false;
 
-        // 권장 주머니 오답 체크
+        // 권장 주머니 오답 체크 (필수권장 + 선택권장만 허용)
         recUser.forEach(u => {
             if (!target.sRec.includes(u) && !target.sFlex.includes(u)) isCorrect = false;
         });
     } else {
-        // 화학과/의예과처럼 sFlex가 핵심으로 간 경우, 권장 주머니엔 순수 sRec만 있어야 함
+        // 의예/약학처럼 sFlex가 이미 핵심으로 간 경우: 권장 주머니엔 sRec만 있어야 함
+        if (recUser.length !== target.sRec.length) isCorrect = false;
         recUser.forEach(u => { if (!target.sRec.includes(u)) isCorrect = false; });
     }
 

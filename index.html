@@ -194,26 +194,56 @@ function initGame() {
 
 function checkResult() {
     const major = select.value;
+    if (!major) return;
+
+    // 사용자가 각 구역에 담은 과목 리스트
     const coreUser = Array.from(document.getElementById('coreZone').children).map(c => c.dataset.name);
     const recUser = Array.from(document.getElementById('recZone').children).map(c => c.dataset.name);
     
     const target = data[major];
     let isCorrect = true;
 
-    // 핵심과목 검증
+    // 1. 핵심과목 주머니 검증
+    // (1) 필수 핵심과목이 모두 포함되었는가?
     target.sCore.forEach(s => { if(!coreUser.includes(s)) isCorrect = false; });
-    
-    // 선택형(의예 등) 검증
-    if(target.sFlex) {
-        const flexMatch = target.sFlex.filter(s => coreUser.includes(s)).length;
-        if(flexMatch < target.sFlexCount) isCorrect = false;
+
+    // (2) 선택형 핵심과목(의예 등) 개수가 맞는가?
+    let flexInCore = [];
+    if(target.sFlex && target.sFlexCount > 0) {
+        flexInCore = target.sFlex.filter(s => coreUser.includes(s));
+        if(flexInCore.length !== target.sFlexCount) isCorrect = false;
     }
 
-    if(isCorrect) {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        alert("정답입니다! 🎉\n경희대학교 전공 이수 로드맵을 완벽히 이해하셨네요!");
+    // (3) 핵심 주머니에 '정답 외의 엉뚱한 과목'이 들어있지는 않은가? (오답 체크 핵심!)
+    coreUser.forEach(u => {
+        const isBaseCore = target.sCore.includes(u);
+        const isFlexCore = target.sFlex ? target.sFlex.includes(u) : false;
+        if (!isBaseCore && !isFlexCore) isCorrect = false;
+    });
+
+
+    // 2. 권장과목 주머니 검증
+    // (1) 필수 권장과목이 모두 포함되었는가?
+    target.sRec.forEach(s => { if(!recUser.includes(s)) isCorrect = false; });
+
+    // (2) 권장 주머니에 '정답 외의 엉뚱한 과목'이 들어있지는 않은가?
+    recUser.forEach(u => {
+        if (!target.sRec.includes(u)) isCorrect = false;
+    });
+
+
+    // 3. 결과 출력
+    if (isCorrect) {
+        confetti({ 
+            particleCount: 150, 
+            spread: 70, 
+            origin: { y: 0.6 },
+            colors: ['#cc0000', '#ffffff', '#ffd700'] 
+        });
+        alert("완벽합니다! 🎉\n정답 과목들만 정확하게 골라내셨네요!");
     } else {
-        alert("다시 한번 시도해 보세요! 😭\n모집단위별 핵심/권장과목 안내를 다시 확인해볼까요?");
+        // 실패 시 시각적 피드백 (흔들기 효과 등 추가 가능)
+        alert("다시 한번 시도해 보세요! 😭\n필요한 과목이 빠졌거나, 엉뚱한 과목이 포함되어 있습니다.");
     }
 }
 </script>
